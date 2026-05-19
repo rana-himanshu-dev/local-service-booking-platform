@@ -11,13 +11,13 @@ import java.util.Optional;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
 
-    // Find user by email — used during login
+
     Optional<User> findByEmail(String email);
 
-    // Check if email already exists — used during registration
+
     boolean existsByEmail(String email);
 
-    // Find all users by role — used by admin
+
     List<User> findByRole(Role role);
 
     // Find all active users

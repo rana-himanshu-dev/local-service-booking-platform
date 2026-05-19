@@ -10,12 +10,11 @@ import java.util.Optional;
 @Repository
 public interface ServiceCategoryRepository extends JpaRepository<ServiceCategory, Long> {
 
-    // Find category by name — used when admin creates categories
+
     Optional<ServiceCategory> findByName(String name);
 
-    // Find all active categories — shown to customers on homepage
+
     List<ServiceCategory> findByIsActive(Boolean isActive);
 
-    // Check if category name already exists
     boolean existsByName(String name);
 }

@@ -13,7 +13,7 @@ public class TimeSlot {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Many TimeSlots → One ServiceProvider
+
     @ManyToOne
     @JoinColumn(name = "provider_id", nullable = false)
     private ServiceProvider provider;

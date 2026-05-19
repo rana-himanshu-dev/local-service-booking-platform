@@ -12,17 +12,17 @@ public class Booking {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Many Bookings → One User (customer)
+
     @ManyToOne
     @JoinColumn(name = "customer_id", nullable = false)
     private User customer;
 
-    // Many Bookings → One ServiceProvider
+
     @ManyToOne
     @JoinColumn(name = "provider_id", nullable = false)
     private ServiceProvider provider;
 
-    // One Booking → One TimeSlot
+
     @OneToOne
     @JoinColumn(name = "slot_id", nullable = false)
     private TimeSlot slot;

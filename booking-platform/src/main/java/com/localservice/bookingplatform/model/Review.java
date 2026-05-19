@@ -11,23 +11,23 @@ public class Review {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // One Review → One Booking
+
     @OneToOne
     @JoinColumn(name = "booking_id", nullable = false)
     private Booking booking;
 
-    // Many Reviews → One User (customer who wrote it)
+
     @ManyToOne
     @JoinColumn(name = "customer_id", nullable = false)
     private User customer;
 
-    // Many Reviews → One ServiceProvider (who received it)
+
     @ManyToOne
     @JoinColumn(name = "provider_id", nullable = false)
     private ServiceProvider provider;
 
     @Column(nullable = false)
-    private Integer rating;   // 1 to 5
+    private Integer rating;
 
     @Column(columnDefinition = "TEXT")
     private String comment;

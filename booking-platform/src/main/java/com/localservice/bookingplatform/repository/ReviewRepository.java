@@ -15,16 +15,16 @@ import java.util.Optional;
 @Repository
 public interface ReviewRepository extends JpaRepository<Review, Long> {
 
-    // All reviews for a provider — shown on provider profile
+
     List<Review> findByProvider(ServiceProvider provider);
 
-    // All reviews written by a customer
+
     List<Review> findByCustomer(User customer);
 
-    // Check if review already exists for a booking
+
     Optional<Review> findByBooking(Booking booking);
 
-    // Average rating for a provider — used to update provider's avg_rating
+
     @Query("SELECT AVG(r.rating) FROM Review r WHERE r.provider = :provider")
     Double getAverageRatingForProvider(@Param("provider") ServiceProvider provider);
 }

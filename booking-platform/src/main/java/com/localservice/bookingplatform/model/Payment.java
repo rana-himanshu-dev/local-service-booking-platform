@@ -12,7 +12,7 @@ public class Payment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // One Payment → One Booking
+
     @OneToOne
     @JoinColumn(name = "booking_id", nullable = false)
     private Booking booking;

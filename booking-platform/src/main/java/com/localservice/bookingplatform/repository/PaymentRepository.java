@@ -10,12 +10,12 @@ import java.util.Optional;
 @Repository
 public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
-    // Find payment by booking — used after booking is confirmed
+
     Optional<Payment> findByBooking(Booking booking);
 
-    // Find by Razorpay order ID — used in payment verification
+
     Optional<Payment> findByRazorpayOrderId(String razorpayOrderId);
 
-    // Find by Razorpay payment ID — used in webhook handling
+
     Optional<Payment> findByRazorpayPaymentId(String razorpayPaymentId);
 }
