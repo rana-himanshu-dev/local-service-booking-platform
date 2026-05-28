@@ -1,6 +1,7 @@
 package com.localservice.bookingplatform.service;
 
 import com.localservice.bookingplatform.dto.AuthResponse;
+import com.localservice.bookingplatform.dto.LoginRequest;
 import com.localservice.bookingplatform.dto.RegisterRequest;
 import com.localservice.bookingplatform.enums.Role;
 import com.localservice.bookingplatform.model.User;
@@ -44,5 +45,32 @@ public class AuthService {
                 savedUser.getRole().name()
         );
         return new AuthResponse("Registration successful",token,savedUser.getEmail(),savedUser.getRole().name());
+    }
+
+    public AuthResponse login(LoginRequest request) {
+
+
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException(
+                        "No user found with email: " + request.getEmail()));
+
+        if (!user.getIsActive()) {
+            throw new RuntimeException(
+                    "Account is deactivated. Contact support.");
+        }
+
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new RuntimeException("Invalid email or password");
+        }
+        String token = jwtUtil.generateToken(
+                user.getEmail(),
+                user.getRole().name());
+
+        return new AuthResponse(
+                "Login successful",
+                token,
+                user.getEmail(),
+                user.getRole().name()
+        );
     }
 }

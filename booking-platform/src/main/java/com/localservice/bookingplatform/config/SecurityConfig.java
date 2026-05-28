@@ -34,25 +34,19 @@ public class SecurityConfig {
             throws Exception {
 
         http
+
                 .csrf(csrf -> csrf.disable())
-
-
+                .cors(cors -> cors.disable())
+                .securityContext(securityContext ->
+                        securityContext.requireExplicitSave(false))
                 .authorizeHttpRequests(auth -> auth
-
-
-                        .requestMatchers(
-                                "/auth/**",
-                                "/api/public/**",
-                                "/css/**",
-                                "/js/**",
-                                "/images/**"
-                        ).permitAll()
-                        .requestMatchers("/api/admin/**")
-                        .hasRole("ADMIN")
-                        .requestMatchers("/api/provider/**")
-                        .hasRole("PROVIDER")
-                        .requestMatchers("/api/customer/**")
-                        .hasRole("CUSTOMER")
+                        .requestMatchers("/auth/register").permitAll()
+                        .requestMatchers("/auth/login").permitAll()
+                        .requestMatchers("/api/public/**").permitAll()
+                        .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/provider/**").hasRole("PROVIDER")
+                        .requestMatchers("/api/customer/**").hasRole("CUSTOMER")
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
@@ -80,4 +74,5 @@ public class SecurityConfig {
             AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
+
 }

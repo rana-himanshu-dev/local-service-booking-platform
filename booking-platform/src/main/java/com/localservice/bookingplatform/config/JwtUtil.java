@@ -50,8 +50,6 @@ public class JwtUtil {
         }
     }
 
-    // ── Job 3: READ data from token ────────────────────────
-
     public String extractEmail(String token) {
         return extractAllClaims(token).getSubject();
     }

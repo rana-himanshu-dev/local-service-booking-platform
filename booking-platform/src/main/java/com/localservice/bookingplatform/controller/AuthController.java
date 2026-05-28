@@ -6,6 +6,10 @@ import com.localservice.bookingplatform.service.AuthService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.localservice.bookingplatform.dto.LoginRequest;
+
+import static org.springframework.http.ResponseEntity.ok;
+
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
@@ -22,6 +26,11 @@ public class AuthController {
              .status(HttpStatus.CREATED)
              .body(response);
  }
-
+    @PostMapping("/login")
+    public ResponseEntity<AuthResponse> login(
+            @RequestBody LoginRequest request) {
+        AuthResponse response = authService.login(request);
+        return ResponseEntity.ok(response);
+    }
 
 }
