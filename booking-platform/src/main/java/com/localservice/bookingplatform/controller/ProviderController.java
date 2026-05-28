@@ -19,7 +19,7 @@ public class ProviderController {
     }
 
     @PostMapping("/profile")
-    @PreAuthorize("hasRole('ROLE_PROVIDER')")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'PROVIDER', 'ADMIN')")
     public ResponseEntity<ServiceProviderResponse> createProfile(
             @RequestBody CreateServiceProviderRequest request) {
         ServiceProviderResponse response = providerService.createProfile(request);
@@ -27,7 +27,7 @@ public class ProviderController {
     }
 
     @PutMapping("/profile")
-    @PreAuthorize("hasRole('ROLE_PROVIDER')")
+    @PreAuthorize("hasRole('PROVIDER')")
     public ResponseEntity<ServiceProviderResponse> updateProfile(
             @RequestBody CreateServiceProviderRequest request) {
         ServiceProviderResponse response = providerService.updateProfile(request);

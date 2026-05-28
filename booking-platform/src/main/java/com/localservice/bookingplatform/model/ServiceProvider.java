@@ -2,6 +2,8 @@ package com.localservice.bookingplatform.model;
 
 import com.localservice.bookingplatform.enums.ApprovalStatus;
 import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -12,11 +14,11 @@ public class ServiceProvider {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "category_id")
     private ServiceCategory category;
 
@@ -50,9 +52,15 @@ public class ServiceProvider {
 
     @Column(name = "rejection_reason", length = 255)
     private String rejectionReason;
-
+    @CreationTimestamp
     @Column(name = "registered_at")
-    private LocalDateTime registeredAt = LocalDateTime.now();
+    private LocalDateTime registeredAt;
+
+    // OR in a JPA lifecycle method:
+    @PrePersist
+    protected void onCreate() {
+        registeredAt = LocalDateTime.now();
+    }
 
     @Column(name = "reviewed_at")
     private LocalDateTime reviewedAt;

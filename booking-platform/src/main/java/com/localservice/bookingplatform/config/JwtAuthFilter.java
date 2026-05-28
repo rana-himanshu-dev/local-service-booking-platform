@@ -5,6 +5,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -13,6 +14,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.security.core.context.SecurityContext;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
@@ -49,15 +52,21 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext()
                         .getAuthentication() == null) {
             try {
-                UserDetails userDetails =
-                        userDetailsService.loadUserByUsername(email);
-
                 if (jwtUtil.validateToken(token)) {
+
+                    String role = jwtUtil.extractRole(token);
+
+
+                    List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+                    authorities.add(new SimpleGrantedAuthority("ROLE_" + role));
+
+                    System.out.println("Token valid for: " + email + " with role: " + role);
+
                     UsernamePasswordAuthenticationToken authToken =
                             new UsernamePasswordAuthenticationToken(
-                                    userDetails,
+                                    email,
                                     null,
-                                    userDetails.getAuthorities()
+                                    authorities
                             );
                     authToken.setDetails(
                             new WebAuthenticationDetailsSource()
@@ -66,12 +75,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                             SecurityContextHolder.createEmptyContext();
                     securityContext.setAuthentication(authToken);
                     SecurityContextHolder.setContext(securityContext);
-                    System.out.println("Authentication set for: " + email);
+                    System.out.println("Authentication set for: " + email + " with authorities: " + authorities);
                 } else {
                     System.out.println("Token validation failed for: " + email);
                 }
             } catch (Exception e) {
                 System.out.println("Authentication failed: " + e.getMessage());
+                e.printStackTrace();
             }
         }
 
