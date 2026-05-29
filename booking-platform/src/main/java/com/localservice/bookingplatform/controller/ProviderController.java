@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/provider")
@@ -39,5 +40,15 @@ public class ProviderController {
             @PathVariable Long id) {
         ServiceProviderResponse response = providerService.getProfileById(id);
         return ResponseEntity.ok(response);
+    }
+    @GetMapping("/search")
+    public ResponseEntity<List<ServiceProviderResponse>> searchProviders(
+            @RequestParam(required = false) String city,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) String keyword) {
+
+        List<ServiceProviderResponse> results =
+                providerService.searchProviders(city, categoryId, keyword);
+        return ResponseEntity.ok(results);
     }
 }

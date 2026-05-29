@@ -12,6 +12,8 @@ import com.localservice.bookingplatform.repository.UserRepository;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import java.util.List;
+import java.util.stream.Collectors;
 @Service
 public class ProviderService {
 
@@ -129,5 +131,44 @@ public class ProviderService {
                 provider.getApprovalStatus().name(),
                 provider.getUser() != null ? provider.getUser().getEmail() : "Unknown"
         );
+    }
+    public List<ServiceProviderResponse> searchProviders(
+            String city, Long categoryId, String keyword) {
+
+        List<ServiceProvider> providers;
+
+        if (city != null && categoryId != null) {
+            providers = providerRepository
+                    .findByApprovalStatusAndCityAndCategoryId(
+                            ApprovalStatus.APPROVED, city, categoryId);
+        }
+
+        else if (city != null) {
+            providers = providerRepository
+                    .findByApprovalStatusAndCity(
+                            ApprovalStatus.APPROVED, city);
+        }
+        else if (categoryId != null) {
+            providers = providerRepository
+                    .findByApprovalStatus(ApprovalStatus.APPROVED);
+            providers = providers.stream()
+                    .filter(p -> p.getCategory().getId().equals(categoryId))
+                    .collect(Collectors.toList());
+        }
+        else {
+            providers = providerRepository
+                    .findByApprovalStatus(ApprovalStatus.APPROVED);
+        }
+        if (keyword != null && !keyword.isEmpty()) {
+            String kw = keyword.toLowerCase();
+            providers = providers.stream()
+                    .filter(p -> p.getBusinessName().toLowerCase().contains(kw) ||
+                            p.getDescription().toLowerCase().contains(kw))
+                    .collect(Collectors.toList());
+        }
+
+        return providers.stream()
+                .map(this::convertToResponse)
+                .collect(Collectors.toList());
     }
 }
