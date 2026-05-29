@@ -20,15 +20,17 @@ public class BookingService {
     private final TimeSlotRepository timeSlotRepository;
     private final UserRepository userRepository;
     private final ServiceProviderRepository providerRepository;
+    private final EmailService emailService;
 
     public BookingService(BookingRepository bookingRepository,
                           TimeSlotRepository timeSlotRepository,
                           UserRepository userRepository,
-                          ServiceProviderRepository providerRepository) {
+                          ServiceProviderRepository providerRepository, EmailService emailService) {
         this.bookingRepository = bookingRepository;
         this.timeSlotRepository = timeSlotRepository;
         this.userRepository = userRepository;
         this.providerRepository = providerRepository;
+        this.emailService = emailService;
     }
 
     private String getCurrentUserEmail() {
@@ -68,6 +70,22 @@ public class BookingService {
         timeSlotRepository.save(slot);
 
         Booking saved = bookingRepository.save(booking);
+
+        emailService.sendBookingConfirmation(
+                customer.getEmail(),
+                provider.getBusinessName(),
+                slot.getSlotDate().toString(),
+                slot.getStartTime().toString(),
+                totalAmount
+        );
+
+        emailService.sendProviderNotification(
+                provider.getUser().getEmail(),
+                customer.getFullName(),
+                slot.getSlotDate().toString(),
+                slot.getStartTime().toString()
+        );
+
         return convertToResponse(saved);
     }
 
