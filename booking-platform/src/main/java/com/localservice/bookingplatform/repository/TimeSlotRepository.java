@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 
 @Repository
@@ -25,4 +26,9 @@ public interface TimeSlotRepository extends JpaRepository<TimeSlot, Long> {
 
     List<TimeSlot> findByProviderAndSlotDate(
             ServiceProvider provider, LocalDate slotDate);
+    List<TimeSlot> findByProviderId(Long providerId);
+
+    List<TimeSlot> findByProviderIdAndIsBooked(Long providerId, Boolean isBooked);
+
+
 }
