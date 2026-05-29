@@ -1,5 +1,6 @@
 package com.localservice.bookingplatform.model;
 
+import com.localservice.bookingplatform.dto.BookingResponse;
 import com.localservice.bookingplatform.enums.BookingStatus;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
@@ -66,4 +67,13 @@ public class Booking {
     public void setNotes(String notes) { this.notes = notes; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    public BookingResponse getTimeSlot() {
+        return null;
+    }
+
+    public void setTimeSlot(TimeSlot slot) {
+
+    }
+
 }
