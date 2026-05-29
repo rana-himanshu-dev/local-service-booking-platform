@@ -56,6 +56,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/provider/search").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/slots/provider/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/bookings/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/reviews/**").permitAll()
                         .requestMatchers("/api/provider/**").hasRole("PROVIDER")
                         .requestMatchers("/api/customer/**").hasRole("CUSTOMER")
                         .anyRequest().authenticated()
