@@ -52,4 +52,13 @@ public class BookingController {
         List<BookingResponse> bookings = bookingService.getAllBookings();
         return ResponseEntity.ok(bookings);
     }
+    @PutMapping("/{id}/status")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'PROVIDER')")
+    public ResponseEntity<BookingResponse> updateBookingStatus(
+            @PathVariable Long id,
+            @RequestBody UpdateBookingStatusRequest request) {
+        BookingResponse response = bookingService.updateBookingStatus(
+                id, request.getStatus(), request.getReason());
+        return ResponseEntity.ok(response);
+    }
 }

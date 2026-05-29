@@ -65,7 +65,6 @@ public class BookingService {
         booking.setNotes(request.getNotes());
         booking.setCreatedAt(LocalDateTime.now());
 
-        // Mark slot as booked
         slot.setIsBooked(true);
         timeSlotRepository.save(slot);
 
@@ -139,5 +138,44 @@ public class BookingService {
                 .stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
+    }
+
+    public BookingResponse updateBookingStatus(Long bookingId, String statusStr, String reason) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new RuntimeException("Booking not found"));
+
+        String email = getCurrentUserEmail();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        BookingStatus newStatus = BookingStatus.valueOf(statusStr.toUpperCase());
+
+        if (newStatus == BookingStatus.COMPLETED) {
+            if (!booking.getProvider().getUser().getId().equals(user.getId())) {
+                throw new RuntimeException("Only provider can mark booking as completed");
+            }
+        }
+
+        if (newStatus == BookingStatus.CANCELLED) {
+            if (!booking.getCustomer().getId().equals(user.getId())) {
+                throw new RuntimeException("Only customer can cancel booking");
+            }
+
+
+            booking.getTimeSlot().setIsBooked(false);
+            timeSlotRepository.save(booking.getTimeSlot());
+
+
+            emailService.sendCancellationEmail(
+                    booking.getProvider().getUser().getEmail(),
+                    "Booking Cancelled",
+                    "Booking for " + booking.getTimeSlot().getSlotDate() +
+                            " has been cancelled.\nReason: " + (reason != null ? reason : "No reason provided")
+            );
+        }
+
+        booking.setStatus(newStatus);
+        Booking updated = bookingRepository.save(booking);
+        return convertToResponse(updated);
     }
 }
