@@ -40,4 +40,16 @@ public class BookingController {
         BookingResponse booking = bookingService.getBookingById(id);
         return ResponseEntity.ok(booking);
     }
+    @GetMapping("/provider/my")
+    @PreAuthorize("hasRole('PROVIDER')")
+    public ResponseEntity<List<BookingResponse>> getProviderBookings() {
+        List<BookingResponse> bookings = bookingService.getProviderBookings();
+        return ResponseEntity.ok(bookings);
+    }
+    @GetMapping("/all")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<BookingResponse>> getAllBookings() {
+        List<BookingResponse> bookings = bookingService.getAllBookings();
+        return ResponseEntity.ok(bookings);
+    }
 }

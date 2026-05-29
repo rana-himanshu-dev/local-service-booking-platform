@@ -36,7 +36,7 @@ public class BookingService {
         return auth.getName();
     }
 
-    // Create booking (CUSTOMER only)
+
     public BookingResponse createBooking(CreateBookingRequest request) {
         String email = getCurrentUserEmail();
         User customer = userRepository.findByEmail(email)
@@ -45,7 +45,7 @@ public class BookingService {
         TimeSlot slot = timeSlotRepository.findById(request.getTimeSlotId())
                 .orElseThrow(() -> new RuntimeException("Time slot not found"));
 
-        // Check if slot already booked
+
         if (slot.getIsBooked()) {
             throw new RuntimeException("This slot is already booked");
         }
@@ -53,7 +53,7 @@ public class BookingService {
         ServiceProvider provider = slot.getProvider();
         Double totalAmount = provider.getHourlyRate(); // Simple calculation
 
-        // Create booking
+
         Booking booking = new Booking();
         booking.setCustomer(customer);
         booking.setProvider(provider);
@@ -71,7 +71,7 @@ public class BookingService {
         return convertToResponse(saved);
     }
 
-    // Get customer's bookings
+
     public List<BookingResponse> getMyBookings() {
         String email = getCurrentUserEmail();
         User customer = userRepository.findByEmail(email)
@@ -83,7 +83,7 @@ public class BookingService {
                 .collect(Collectors.toList());
     }
 
-    // Get booking by ID
+
     public BookingResponse getBookingById(Long id) {
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Booking not found: " + id));
@@ -102,5 +102,24 @@ public class BookingService {
                 booking.getNotes(),
                 booking.getCreatedAt()
         );
+    }
+    public List<BookingResponse> getProviderBookings() {
+        String email = getCurrentUserEmail();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        ServiceProvider provider = providerRepository.findByUser(user)
+                .orElseThrow(() -> new RuntimeException("Provider profile not found"));
+
+        return bookingRepository.findByProvider(provider)
+                .stream()
+                .map(this::convertToResponse)
+                .collect(Collectors.toList());
+    }
+    public List<BookingResponse> getAllBookings() {
+        return bookingRepository.findAll()
+                .stream()
+                .map(this::convertToResponse)
+                .collect(Collectors.toList());
     }
 }
