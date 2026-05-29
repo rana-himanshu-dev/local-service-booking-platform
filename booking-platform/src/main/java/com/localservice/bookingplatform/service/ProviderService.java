@@ -20,13 +20,15 @@ public class ProviderService {
     private final ServiceProviderRepository providerRepository;
     private final UserRepository userRepository;
     private final ServiceCategoryRepository categoryRepository;
+    private final EmailService emailService;
 
     public ProviderService(ServiceProviderRepository providerRepository,
                            UserRepository userRepository,
-                           ServiceCategoryRepository categoryRepository) {
+                           ServiceCategoryRepository categoryRepository, EmailService emailService) {
         this.providerRepository = providerRepository;
         this.userRepository = userRepository;
         this.categoryRepository = categoryRepository;
+        this.emailService = emailService;
     }
 
     private String getCurrentUserEmail() {
@@ -132,6 +134,7 @@ public class ProviderService {
                 provider.getUser() != null ? provider.getUser().getEmail() : "Unknown"
         );
     }
+
     public List<ServiceProviderResponse> searchProviders(
             String city, Long categoryId, String keyword) {
 
@@ -141,21 +144,17 @@ public class ProviderService {
             providers = providerRepository
                     .findByApprovalStatusAndCityAndCategoryId(
                             ApprovalStatus.APPROVED, city, categoryId);
-        }
-
-        else if (city != null) {
+        } else if (city != null) {
             providers = providerRepository
                     .findByApprovalStatusAndCity(
                             ApprovalStatus.APPROVED, city);
-        }
-        else if (categoryId != null) {
+        } else if (categoryId != null) {
             providers = providerRepository
                     .findByApprovalStatus(ApprovalStatus.APPROVED);
             providers = providers.stream()
                     .filter(p -> p.getCategory().getId().equals(categoryId))
                     .collect(Collectors.toList());
-        }
-        else {
+        } else {
             providers = providerRepository
                     .findByApprovalStatus(ApprovalStatus.APPROVED);
         }
@@ -170,5 +169,38 @@ public class ProviderService {
         return providers.stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
+    }
+
+    public List<ServiceProviderResponse> getPendingProviders() {
+        return providerRepository.findByApprovalStatus(ApprovalStatus.PENDING)
+                .stream()
+                .map(this::convertToResponse)
+                .collect(Collectors.toList());
+    }
+
+    public ServiceProviderResponse approveProvider(Long providerId, Boolean approved, String remarks) {
+        ServiceProvider provider = providerRepository.findById(providerId)
+                .orElseThrow(() -> new RuntimeException("Provider not found: " + providerId));
+
+        if (approved) {
+            provider.setApprovalStatus(ApprovalStatus.APPROVED);
+            emailService.sendApprovalEmail(
+                    provider.getUser().getEmail(),
+                    provider.getBusinessName(),
+                    true,
+                    "Your profile has been approved!"
+            );
+        } else {
+            provider.setApprovalStatus(ApprovalStatus.REJECTED);
+            emailService.sendApprovalEmail(
+                    provider.getUser().getEmail(),
+                    provider.getBusinessName(),
+                    false,
+                    remarks != null ? remarks : "Your profile was rejected."
+            );
+        }
+
+        ServiceProvider updated = providerRepository.save(provider);
+        return convertToResponse(updated);
     }
 }

@@ -62,4 +62,21 @@ public class EmailService {
             System.out.println("Email send failed: " + e.getMessage());
         }
     }
+    public void sendApprovalEmail(String providerEmail, String businessName,
+                                  Boolean approved, String message) {
+        SimpleMailMessage mailMessage = new SimpleMailMessage();
+        mailMessage.setTo(providerEmail);
+        mailMessage.setSubject(approved ? "Profile Approved" : "Profile Rejected");
+        mailMessage.setText("Dear " + businessName + ",\n\n" +
+                message + "\n\n" +
+                (approved ? "You can now start receiving bookings!" :
+                        "Please update your profile and resubmit.") +
+                "\n\nThank you!");
+
+        try {
+            mailSender.send(mailMessage);
+        } catch (Exception e) {
+            System.out.println("Email send failed: " + e.getMessage());
+        }
+    }
 }
