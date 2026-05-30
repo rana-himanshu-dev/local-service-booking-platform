@@ -7,6 +7,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -29,5 +30,18 @@ public class GlobalExceptionHandler {
             Exception ex, WebRequest request) {
         ErrorResponse error = new ErrorResponse(500, "Internal Server Error");
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+    }
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleValidationException(
+            MethodArgumentNotValidException ex) {
+        String message = ex.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .reduce((a, b) -> a + ", " + b)
+                .orElse("Validation failed");
+
+        ErrorResponse error = new ErrorResponse(400, message);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 }

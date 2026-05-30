@@ -7,7 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.localservice.bookingplatform.dto.LoginRequest;
-
+import jakarta.validation.Valid;
 import static org.springframework.http.ResponseEntity.ok;
 
 @RestController
@@ -20,7 +20,7 @@ public class AuthController {
 
  @PostMapping("/register")
     public ResponseEntity<AuthResponse> regiser(
-            @RequestBody RegisterRequest request) {
+            @Valid @RequestBody RegisterRequest request) {
      AuthResponse response = authService.register(request);
      return ResponseEntity
              .status(HttpStatus.CREATED)
@@ -28,7 +28,7 @@ public class AuthController {
  }
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(
-            @RequestBody LoginRequest request) {
+           @Valid @RequestBody LoginRequest request) {
         AuthResponse response = authService.login(request);
         return ResponseEntity.ok(response);
     }
