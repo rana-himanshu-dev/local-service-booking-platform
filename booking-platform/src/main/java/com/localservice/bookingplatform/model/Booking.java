@@ -49,7 +49,7 @@ public class Booking {
     public Long getId() { return id; }
     public User getCustomer() { return customer; }
     public ServiceProvider getProvider() { return provider; }
-    public TimeSlot getSlot() { return slot; }
+    public TimeSlot getTimeSlot() { return slot; }
     public BookingStatus getStatus() { return status; }
     public Double getTotalAmount() { return totalAmount; }
     public String getNotes() { return notes; }
@@ -68,11 +68,8 @@ public class Booking {
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 
-    public BookingResponse getTimeSlot() {
-        return null;
-    }
-
     public void setTimeSlot(TimeSlot slot) {
+        this.slot = slot;
 
     }
 

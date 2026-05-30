@@ -25,7 +25,8 @@ public class BookingService {
     public BookingService(BookingRepository bookingRepository,
                           TimeSlotRepository timeSlotRepository,
                           UserRepository userRepository,
-                          ServiceProviderRepository providerRepository, EmailService emailService) {
+                          ServiceProviderRepository providerRepository,
+                          EmailService emailService) {
         this.bookingRepository = bookingRepository;
         this.timeSlotRepository = timeSlotRepository;
         this.userRepository = userRepository;
@@ -38,7 +39,6 @@ public class BookingService {
         return auth.getName();
     }
 
-
     public BookingResponse createBooking(CreateBookingRequest request) {
         String email = getCurrentUserEmail();
         User customer = userRepository.findByEmail(email)
@@ -47,14 +47,12 @@ public class BookingService {
         TimeSlot slot = timeSlotRepository.findById(request.getTimeSlotId())
                 .orElseThrow(() -> new RuntimeException("Time slot not found"));
 
-
         if (slot.getIsBooked()) {
             throw new RuntimeException("This slot is already booked");
         }
 
         ServiceProvider provider = slot.getProvider();
-        Double totalAmount = provider.getHourlyRate(); // Simple calculation
-
+        Double totalAmount = provider.getHourlyRate();
 
         Booking booking = new Booking();
         booking.setCustomer(customer);
@@ -88,7 +86,6 @@ public class BookingService {
         return convertToResponse(saved);
     }
 
-
     public List<BookingResponse> getMyBookings() {
         String email = getCurrentUserEmail();
         User customer = userRepository.findByEmail(email)
@@ -100,26 +97,12 @@ public class BookingService {
                 .collect(Collectors.toList());
     }
 
-
     public BookingResponse getBookingById(Long id) {
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Booking not found: " + id));
         return convertToResponse(booking);
     }
 
-    private BookingResponse convertToResponse(Booking booking) {
-        return new BookingResponse(
-                booking.getId(),
-                booking.getCustomer().getEmail(),
-                booking.getProvider().getBusinessName(),
-                booking.getTimeSlot().getSlotDate().toString(),
-                booking.getTimeSlot().getStartTime().toString(),
-                booking.getStatus().name(),
-                booking.getTotalAmount(),
-                booking.getNotes(),
-                booking.getCreatedAt()
-        );
-    }
     public List<BookingResponse> getProviderBookings() {
         String email = getCurrentUserEmail();
         User user = userRepository.findByEmail(email)
@@ -133,6 +116,7 @@ public class BookingService {
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
     }
+
     public List<BookingResponse> getAllBookings() {
         return bookingRepository.findAll()
                 .stream()
@@ -161,10 +145,9 @@ public class BookingService {
                 throw new RuntimeException("Only customer can cancel booking");
             }
 
-
-            booking.getTimeSlot().setIsBooked(false);
-            timeSlotRepository.save(booking.getTimeSlot());
-
+            TimeSlot slot = booking.getTimeSlot();
+            slot.setIsBooked(false);
+            timeSlotRepository.save(slot);
 
             emailService.sendCancellationEmail(
                     booking.getProvider().getUser().getEmail(),
@@ -177,5 +160,19 @@ public class BookingService {
         booking.setStatus(newStatus);
         Booking updated = bookingRepository.save(booking);
         return convertToResponse(updated);
+    }
+
+    private BookingResponse convertToResponse(Booking booking) {
+        return new BookingResponse(
+                booking.getId(),
+                booking.getCustomer().getEmail(),
+                booking.getProvider().getBusinessName(),
+                booking.getTimeSlot().getSlotDate().toString(),
+                booking.getTimeSlot().getStartTime().toString(),
+                booking.getStatus().name(),
+                booking.getTotalAmount(),
+                booking.getNotes(),
+                booking.getCreatedAt()
+        );
     }
 }

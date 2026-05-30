@@ -12,6 +12,7 @@ public class BookingResponse {
     private Double totalAmount;
     private String notes;
     private LocalDateTime createdAt;
+    private Boolean isBooked;
 
     public BookingResponse(Long id, String customerEmail, String providerName,
                            String slotDate, String startTime, String status,
@@ -25,6 +26,7 @@ public class BookingResponse {
         this.totalAmount = totalAmount;
         this.notes = notes;
         this.createdAt = createdAt;
+        this.isBooked = isBooked;
     }
 
     public Long getId() { return id; }
@@ -36,4 +38,6 @@ public class BookingResponse {
     public Double getTotalAmount() { return totalAmount; }
     public String getNotes() { return notes; }
     public LocalDateTime getCreatedAt() { return createdAt; }
+
+
 }
