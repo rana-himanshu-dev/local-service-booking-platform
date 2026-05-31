@@ -1,7 +1,9 @@
 package com.localservice.bookingplatform.controller;
 
+import com.localservice.bookingplatform.dto.AnalyticsResponse;
 import com.localservice.bookingplatform.dto.ApprovalRequest;
 import com.localservice.bookingplatform.dto.ServiceProviderResponse;
+import com.localservice.bookingplatform.service.AdminService;
 import com.localservice.bookingplatform.service.ProviderService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -12,11 +14,19 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/admin")
 public class AdminController {
-
+    private final AdminService adminService;
     private final ProviderService providerService;
 
-    public AdminController(ProviderService providerService) {
+    public AdminController(AdminService adminService, ProviderService providerService) {
+        this.adminService = adminService;
         this.providerService = providerService;
+    }
+
+    @GetMapping("/analytics")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<AnalyticsResponse> getAnalytics() {
+        AnalyticsResponse response = adminService.getAnalytics();
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/providers/pending")
