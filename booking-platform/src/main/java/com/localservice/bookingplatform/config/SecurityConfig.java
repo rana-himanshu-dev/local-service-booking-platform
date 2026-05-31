@@ -61,6 +61,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/unavailability/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/slots").hasRole("PROVIDER")
                         .requestMatchers(HttpMethod.GET, "/api/slots/**").permitAll()
+                        .requestMatchers("/api/user/**").authenticated()
                         .requestMatchers("/api/provider/**").hasRole("PROVIDER")
                         .requestMatchers("/api/customer/**").hasRole("CUSTOMER")
                         .anyRequest().authenticated()
