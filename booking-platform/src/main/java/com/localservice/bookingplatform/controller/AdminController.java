@@ -1,9 +1,6 @@
 package com.localservice.bookingplatform.controller;
 
-import com.localservice.bookingplatform.dto.AnalyticsResponse;
-import com.localservice.bookingplatform.dto.ApprovalRequest;
-import com.localservice.bookingplatform.dto.ServiceProviderResponse;
-import com.localservice.bookingplatform.dto.SupportTicketResponse;
+import com.localservice.bookingplatform.dto.*;
 import com.localservice.bookingplatform.service.AdminService;
 import com.localservice.bookingplatform.service.ProviderService;
 import com.localservice.bookingplatform.service.SupportService;
@@ -66,5 +63,11 @@ public class AdminController {
             @RequestParam String adminResponse) {
         SupportTicketResponse response = supportService.resolveTicket(id, adminResponse);
         return ResponseEntity.ok(response);
+    }
+    @GetMapping("/reports/bookings")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<BookingReportResponse> getBookingReport() {
+        BookingReportResponse report = adminService.getBookingReport();
+        return ResponseEntity.ok(report);
     }
 }

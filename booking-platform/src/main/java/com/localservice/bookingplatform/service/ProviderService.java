@@ -262,4 +262,59 @@ public class ProviderService {
                 })
                 .collect(Collectors.toList());
     }
+
+    public List<ServiceProviderResponse> advancedSearch(
+            String city, Long categoryId, Double minRating,
+            Double maxHourlyRate, Integer minExperience, String keyword) {
+
+        List<ServiceProvider> providers = providerRepository
+                .findByApprovalStatus(ApprovalStatus.APPROVED);
+
+
+        if (city != null && !city.isEmpty()) {
+            providers = providers.stream()
+                    .filter(p -> p.getCity().equalsIgnoreCase(city))
+                    .collect(Collectors.toList());
+        }
+
+        if (categoryId != null) {
+            providers = providers.stream()
+                    .filter(p -> p.getCategory().getId().equals(categoryId))
+                    .collect(Collectors.toList());
+        }
+
+
+        if (minRating != null) {
+            providers = providers.stream()
+                    .filter(p -> p.getAvgRating() >= minRating)
+                    .collect(Collectors.toList());
+        }
+
+
+        if (maxHourlyRate != null) {
+            providers = providers.stream()
+                    .filter(p -> p.getHourlyRate() <= maxHourlyRate)
+                    .collect(Collectors.toList());
+        }
+
+
+        if (minExperience != null) {
+            providers = providers.stream()
+                    .filter(p -> p.getExperienceYears() >= minExperience)
+                    .collect(Collectors.toList());
+        }
+
+
+        if (keyword != null && !keyword.isEmpty()) {
+            String kw = keyword.toLowerCase();
+            providers = providers.stream()
+                    .filter(p -> p.getBusinessName().toLowerCase().contains(kw) ||
+                            p.getDescription().toLowerCase().contains(kw))
+                    .collect(Collectors.toList());
+        }
+
+        return providers.stream()
+                .map(this::convertToResponse)
+                .collect(Collectors.toList());
+    }
 }

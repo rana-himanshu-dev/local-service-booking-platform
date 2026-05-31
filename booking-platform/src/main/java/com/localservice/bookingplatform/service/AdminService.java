@@ -1,6 +1,7 @@
 package com.localservice.bookingplatform.service;
 
 import com.localservice.bookingplatform.dto.AnalyticsResponse;
+import com.localservice.bookingplatform.dto.BookingReportResponse;
 import com.localservice.bookingplatform.enums.BookingStatus;
 import com.localservice.bookingplatform.model.Booking;
 import com.localservice.bookingplatform.model.Review;
@@ -16,6 +17,7 @@ public class AdminService {
     private final ServiceProviderRepository providerRepository;
     private final BookingRepository bookingRepository;
     private final ReviewRepository reviewRepository;
+
 
     public AdminService(UserRepository userRepository,
                         ServiceProviderRepository providerRepository,
@@ -66,6 +68,36 @@ public class AdminService {
                 totalRevenue,
                 platformCommission,
                 Math.round(averageRating * 10.0) / 10.0
+        );
+    }
+    public BookingReportResponse getBookingReport() {
+        List<Booking> allBookings = bookingRepository.findAll();
+
+        Long totalBookings = (long) allBookings.size();
+        Long completedBookings = allBookings.stream()
+                .filter(b -> b.getStatus() == BookingStatus.COMPLETED)
+                .count();
+        Long pendingBookings = allBookings.stream()
+                .filter(b -> b.getStatus() == BookingStatus.PENDING)
+                .count();
+        Long cancelledBookings = allBookings.stream()
+                .filter(b -> b.getStatus() == BookingStatus.CANCELLED)
+                .count();
+
+        Double totalRevenue = allBookings.stream()
+                .mapToDouble(Booking::getTotalAmount)
+                .sum();
+
+        Double averageBookingValue = totalBookings == 0 ? 0.0 :
+                totalRevenue / totalBookings;
+
+        return new BookingReportResponse(
+                totalBookings,
+                completedBookings,
+                pendingBookings,
+                cancelledBookings,
+                totalRevenue,
+                averageBookingValue
         );
     }
 }

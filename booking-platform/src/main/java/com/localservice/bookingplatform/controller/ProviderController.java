@@ -52,4 +52,17 @@ public class ProviderController {
                 providerService.searchProviders(city, categoryId, keyword);
         return ResponseEntity.ok(results);
     }
+    @GetMapping("/search/advanced")
+    public ResponseEntity<List<ServiceProviderResponse>> advancedSearch(
+            @RequestParam(required = false) String city,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) Double minRating,
+            @RequestParam(required = false) Double maxHourlyRate,
+            @RequestParam(required = false) Integer minExperience,
+            @RequestParam(required = false) String keyword) {
+
+        List<ServiceProviderResponse> results = providerService.advancedSearch(
+                city, categoryId, minRating, maxHourlyRate, minExperience, keyword);
+        return ResponseEntity.ok(results);
+    }
 }
