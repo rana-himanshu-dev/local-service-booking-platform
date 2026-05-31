@@ -26,7 +26,8 @@ public class Notification {
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    // ── Getters ──────────────────────────────
+    @Column(length = 50)
+    private String type;
 
     public Long getId() { return id; }
     public User getUser() { return user; }
@@ -34,8 +35,9 @@ public class Notification {
     public String getMessage() { return message; }
     public Boolean getIsRead() { return isRead; }
     public LocalDateTime getCreatedAt() { return createdAt; }
+    public String getType() { return type; }
 
-    // ── Setters ──────────────────────────────
+
 
     public void setId(Long id) { this.id = id; }
     public void setUser(User user) { this.user = user; }
@@ -43,4 +45,6 @@ public class Notification {
     public void setMessage(String message) { this.message = message; }
     public void setIsRead(Boolean isRead) { this.isRead = isRead; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public void setType(String type) { this.type = type; }
+
 }
