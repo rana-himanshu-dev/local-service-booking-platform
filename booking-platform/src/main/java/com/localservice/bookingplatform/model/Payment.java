@@ -7,7 +7,6 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "payments")
 public class Payment {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -36,10 +35,10 @@ public class Payment {
     @Column(name = "paid_at")
     private LocalDateTime paidAt;
 
-    @Column(name = "created_at")
-    private LocalDateTime createdAt = LocalDateTime.now();
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+    private LocalDateTime createdAt;
 
-    // ── Getters ──────────────────────────────
 
     public Long getId() { return id; }
     public Booking getBooking() { return booking; }
@@ -51,7 +50,7 @@ public class Payment {
     public LocalDateTime getPaidAt() { return paidAt; }
     public LocalDateTime getCreatedAt() { return createdAt; }
 
-    // ── Setters ──────────────────────────────
+
 
     public void setId(Long id) { this.id = id; }
     public void setBooking(Booking booking) { this.booking = booking; }
@@ -62,4 +61,7 @@ public class Payment {
     public void setStatus(PaymentStatus status) { this.status = status; }
     public void setPaidAt(LocalDateTime paidAt) { this.paidAt = paidAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
 }
