@@ -1,14 +1,15 @@
 package com.localservice.bookingplatform.service;
 
 import com.localservice.bookingplatform.dto.CreateServiceProviderRequest;
+import com.localservice.bookingplatform.dto.EarningsResponse;
 import com.localservice.bookingplatform.dto.ServiceProviderResponse;
+import com.localservice.bookingplatform.dto.TransactionResponse;
 import com.localservice.bookingplatform.enums.ApprovalStatus;
+import com.localservice.bookingplatform.model.Booking;
 import com.localservice.bookingplatform.model.ServiceCategory;
 import com.localservice.bookingplatform.model.ServiceProvider;
 import com.localservice.bookingplatform.model.User;
-import com.localservice.bookingplatform.repository.ServiceCategoryRepository;
-import com.localservice.bookingplatform.repository.ServiceProviderRepository;
-import com.localservice.bookingplatform.repository.UserRepository;
+import com.localservice.bookingplatform.repository.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -21,14 +22,18 @@ public class ProviderService {
     private final UserRepository userRepository;
     private final ServiceCategoryRepository categoryRepository;
     private final EmailService emailService;
+    private final BookingRepository bookingRepository;
+    private final PaymentRepository paymentRepository;
 
     public ProviderService(ServiceProviderRepository providerRepository,
                            UserRepository userRepository,
-                           ServiceCategoryRepository categoryRepository, EmailService emailService) {
+                           ServiceCategoryRepository categoryRepository, EmailService emailService, BookingRepository bookingRepository, PaymentRepository paymentRepository) {
         this.providerRepository = providerRepository;
         this.userRepository = userRepository;
         this.categoryRepository = categoryRepository;
         this.emailService = emailService;
+        this.bookingRepository = bookingRepository;
+        this.paymentRepository = paymentRepository;
     }
 
     private String getCurrentUserEmail() {
@@ -202,5 +207,59 @@ public class ProviderService {
 
         ServiceProvider updated = providerRepository.save(provider);
         return convertToResponse(updated);
+    }
+
+    public EarningsResponse getEarnings() {
+        String email = getCurrentUserEmail();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        ServiceProvider provider = providerRepository.findByUser(user)
+                .orElseThrow(() -> new RuntimeException("Provider profile not found"));
+
+        List<Booking> bookings = bookingRepository.findByProvider(provider);
+
+        double totalEarnings = 0;
+        for (Booking booking : bookings) {
+            if (booking.getStatus().name().equals("COMPLETED")) {
+                totalEarnings += booking.getTotalAmount();
+            }
+        }
+        double commission = totalEarnings * 0.10;
+        double netEarnings = totalEarnings - commission;
+
+        return new EarningsResponse(
+                totalEarnings,
+                commission,
+                netEarnings,
+                bookings.size()
+        );
+    }
+
+    public List<TransactionResponse> getTransactions() {
+        String email = getCurrentUserEmail();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        ServiceProvider provider = providerRepository.findByUser(user)
+                .orElseThrow(() -> new RuntimeException("Provider profile not found"));
+
+        List<Booking> bookings = bookingRepository.findByProvider(provider);
+
+        return bookings.stream()
+                .map(booking -> {
+                    double commission = booking.getTotalAmount() * 0.10;
+                    double netAmount = booking.getTotalAmount() - commission;
+                    return new TransactionResponse(
+                            booking.getId(),
+                            booking.getCustomer().getFullName(),
+                            booking.getTotalAmount(),
+                            commission,
+                            netAmount,
+                            booking.getStatus().name(),
+                            booking.getCreatedAt()
+                    );
+                })
+                .collect(Collectors.toList());
     }
 }
