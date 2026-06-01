@@ -20,4 +20,8 @@ public class PageController {
     public String register() {
         return "register";
     }
+    @GetMapping("/customer/dashboard")
+    public String customerDashboard() {
+        return "customer-dashboard";
+    }
 }
