@@ -82,8 +82,8 @@ public class AuthServiceTest {
 
     @Test
     void register_ShouldThrowException_WhenEmailAlreadyExists() {
-        when(userRepository.findByEmail(anyString()))
-                .thenReturn(Optional.of(testUser));
+        when(userRepository.existsByEmail(anyString()))
+                .thenReturn(true);
 
         assertThrows(RuntimeException.class, () ->
                 authService.register(registerRequest));
