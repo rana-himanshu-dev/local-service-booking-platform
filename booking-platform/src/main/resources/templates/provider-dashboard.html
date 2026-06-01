@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Provider Dashboard - LocalService</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .sidebar { min-height: 100vh; background: #f8f9fa; }
+        .active-nav { background: #198754; color: white !important; border-radius: 8px; }
+        .stats-card { border-left: 4px solid #198754; }
+    </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-dark bg-success px-4">
+    <span class="navbar-brand fw-bold">🔧 LocalService — Provider</span>
+    <div class="d-flex align-items-center gap-3">
+        <span class="text-white" id="userEmail"></span>
+        <button onclick="logout()" class="btn btn-outline-light btn-sm">Logout</button>
+    </div>
+</nav>
+
+<div class="container-fluid">
+    <div class="row">
+
+        <!-- Sidebar -->
+        <div class="col-md-2 sidebar p-3">
+            <ul class="nav flex-column gap-2 mt-3">
+                <li class="nav-item">
+                    <a href="#" onclick="showSection('overview')"
+                       class="nav-link text-dark active-nav px-3 py-2" id="nav-overview">
+                        📊 Overview
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" onclick="showSection('slots')"
+                       class="nav-link text-dark px-3 py-2" id="nav-slots">
+                        ⏰ Time Slots
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" onclick="showSection('bookings')"
+                       class="nav-link text-dark px-3 py-2" id="nav-bookings">
+                        📅 Bookings
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" onclick="showSection('earnings')"
+                       class="nav-link text-dark px-3 py-2" id="nav-earnings">
+                        💰 Earnings
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-10 p-4">
+
+            <!-- Overview Section -->
+            <div id="section-overview">
+                <h4 class="mb-4">📊 Overview</h4>
+                <div id="statsCards" class="row g-3 mb-4"></div>
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="mb-3">My Profile</h5>
+                        <div id="profileInfo"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slots Section -->
+            <div id="section-slots" class="d-none">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4>⏰ Manage Time Slots</h4>
+                    <button onclick="showAddSlotForm()"
+                            class="btn btn-success">+ Add Slot</button>
+                </div>
+
+                <!-- Add Slot Form -->
+                <div id="addSlotForm" class="card p-3 mb-4 shadow-sm d-none">
+                    <h6 class="mb-3">Create New Time Slot</h6>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Date</label>
+                            <input type="date" id="slotDate" class="form-control">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Start Time</label>
+                            <input type="time" id="startTime" class="form-control">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">End Time</label>
+                            <input type="time" id="endTime" class="form-control">
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button onclick="createSlot()"
+                                    class="btn btn-success w-100">Save</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slots List -->
+                <div id="slotsList"></div>
+            </div>
+
+            <!-- Bookings Section -->
+            <div id="section-bookings" class="d-none">
+                <h4 class="mb-4">📅 My Bookings</h4>
+                <div id="bookingsList"></div>
+            </div>
+
+            <!-- Earnings Section -->
+            <div id="section-earnings" class="d-none">
+                <h4 class="mb-4">💰 Earnings</h4>
+                <div id="earningsDetails"></div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const token = localStorage.getItem('token');
+    const email = localStorage.getItem('email');
+
+    if (!token) window.location.href = '/login';
+    document.getElementById('userEmail').textContent = email;
+
+    // Load overview on start
+    loadOverview();
+
+    // Show section
+    function showSection(section) {
+        ['overview', 'slots', 'bookings', 'earnings'].forEach(s => {
+            document.getElementById('section-' + s).classList.add('d-none');
+            document.getElementById('nav-' + s).classList.remove('active-nav');
+        });
+        document.getElementById('section-' + section).classList.remove('d-none');
+        document.getElementById('nav-' + section).classList.add('active-nav');
+
+        if (section === 'slots') loadSlots();
+        if (section === 'bookings') loadBookings();
+        if (section === 'earnings') loadEarnings();
+    }
+
+    // Load overview
+    async function loadOverview() {
+        // Load profile
+        const profileRes = await fetch('/api/user/profile', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const user = await profileRes.json();
+
+        document.getElementById('profileInfo').innerHTML = `
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Name:</strong> ${user.fullName}</p>
+                    <p><strong>Email:</strong> ${user.email}</p>
+                    <p><strong>Phone:</strong> ${user.phone}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Role:</strong>
+                        <span class="badge bg-success">${user.role}</span>
+                    </p>
+                    <p><strong>Status:</strong>
+                        <span class="badge ${user.isActive ? 'bg-success' : 'bg-danger'}">
+                            ${user.isActive ? 'Active' : 'Inactive'}
+                        </span>
+                    </p>
+                </div>
+            </div>
+        `;
+
+        // Load earnings for stats
+        try {
+            const earningsRes = await fetch('/api/provider/earnings', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const earnings = await earningsRes.json();
+
+            document.getElementById('statsCards').innerHTML = `
+                <div class="col-md-3">
+                    <div class="card stats-card shadow-sm p-3">
+                        <p class="text-muted mb-1 small">Total Bookings</p>
+                        <h3 class="fw-bold text-success">${earnings.totalBookings}</h3>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card stats-card shadow-sm p-3">
+                        <p class="text-muted mb-1 small">Total Earnings</p>
+                        <h3 class="fw-bold text-success">₹${earnings.totalEarnings}</h3>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card stats-card shadow-sm p-3">
+                        <p class="text-muted mb-1 small">Platform Fee (10%)</p>
+                        <h3 class="fw-bold text-warning">₹${earnings.commission}</h3>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card stats-card shadow-sm p-3">
+                        <p class="text-muted mb-1 small">Net Earnings</p>
+                        <h3 class="fw-bold text-primary">₹${earnings.netEarnings}</h3>
+                    </div>
+                </div>
+            `;
+        } catch (e) {
+            document.getElementById('statsCards').innerHTML =
+                '<p class="text-muted">Create your provider profile to see stats.</p>';
+        }
+    }
+
+    // Load slots
+    async function loadSlots() {
+        const profileRes = await fetch('/api/user/profile', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const user = await profileRes.json();
+
+        // Get provider ID from bookings or profile
+        const response = await fetch('/api/slots/provider/1', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const slots = await response.json();
+
+        const container = document.getElementById('slotsList');
+        if (slots.length === 0) {
+            container.innerHTML = '<p class="text-muted">No slots created yet.</p>';
+            return;
+        }
+
+        container.innerHTML = `
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-success">
+                        <tr>
+                            <th>#</th>
+                            <th>Date</th>
+                            <th>Start Time</th>
+                            <th>End Time</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${slots.map(s => `
+                            <tr>
+                                <td>${s.id}</td>
+                                <td>${s.slotDate}</td>
+                                <td>${s.startTime}</td>
+                                <td>${s.endTime}</td>
+                                <td>
+                                    <span class="badge ${s.isBooked ? 'bg-danger' : 'bg-success'}">
+                                        ${s.isBooked ? 'Booked' : 'Available'}
+                                    </span>
+                                </td>
+                                <td>
+                                    ${!s.isBooked ? `
+                                        <button onclick="deleteSlot(${s.id})"
+                                                class="btn btn-outline-danger btn-sm">
+                                            Delete
+                                        </button>` : ''}
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+
+    // Show add slot form
+    function showAddSlotForm() {
+        document.getElementById('addSlotForm').classList.toggle('d-none');
+    }
+
+    // Create slot
+    async function createSlot() {
+        const slotDate = document.getElementById('slotDate').value;
+        const startTime = document.getElementById('startTime').value + ':00';
+        const endTime = document.getElementById('endTime').value + ':00';
+
+        if (!slotDate || !startTime || !endTime) {
+            alert('Please fill all fields');
+            return;
+        }
+
+        const response = await fetch('/api/slots', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ slotDate, startTime, endTime })
+        });
+
+        if (response.ok) {
+            alert('Slot created successfully! ✅');
+            document.getElementById('addSlotForm').classList.add('d-none');
+            loadSlots();
+        } else {
+            const data = await response.json();
+            alert('Error: ' + data.message);
+        }
+    }
+
+    // Delete slot
+    async function deleteSlot(slotId) {
+        if (!confirm('Delete this slot?')) return;
+
+        const response = await fetch(`/api/slots/${slotId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (response.ok) {
+            alert('Slot deleted! ✅');
+            loadSlots();
+        }
+    }
+
+    // Load bookings
+    async function loadBookings() {
+        const response = await fetch('/api/bookings/provider/my', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const bookings = await response.json();
+
+        const container = document.getElementById('bookingsList');
+        if (bookings.length === 0) {
+            container.innerHTML = '<p class="text-muted">No bookings yet.</p>';
+            return;
+        }
+
+        container.innerHTML = `
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-success">
+                        <tr>
+                            <th>#</th>
+                            <th>Customer</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${bookings.map(b => `
+                            <tr>
+                                <td>${b.id}</td>
+                                <td>${b.customerEmail}</td>
+                                <td>${b.slotDate}</td>
+                                <td>${b.startTime}</td>
+                                <td>₹${b.totalAmount}</td>
+                                <td>
+                                    <span class="badge ${
+                                        b.status === 'COMPLETED' ? 'bg-success' :
+                                        b.status === 'CANCELLED' ? 'bg-danger' : 'bg-warning'
+                                    }">${b.status}</span>
+                                </td>
+                                <td>
+                                    ${b.status === 'PENDING' ? `
+                                        <button onclick="markComplete(${b.id})"
+                                                class="btn btn-success btn-sm">
+                                            Mark Complete
+                                        </button>` : ''}
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+
+    // Mark booking complete
+    async function markComplete(bookingId) {
+        const response = await fetch(`/api/bookings/${bookingId}/status`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ status: 'COMPLETED', reason: '' })
+        });
+
+        if (response.ok) {
+            alert('Booking marked as completed! ✅');
+            loadBookings();
+        } else {
+            const data = await response.json();
+            alert('Error: ' + data.message);
+        }
+    }
+
+    // Load earnings
+    async function loadEarnings() {
+        const response = await fetch('/api/provider/earnings', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const earnings = await response.json();
+
+        document.getElementById('earningsDetails').innerHTML = `
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <div class="card border-success shadow-sm p-3 text-center">
+                        <p class="text-muted mb-1">Total Earnings</p>
+                        <h3 class="fw-bold text-success">₹${earnings.totalEarnings}</h3>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-warning shadow-sm p-3 text-center">
+                        <p class="text-muted mb-1">Platform Fee (10%)</p>
+                        <h3 class="fw-bold text-warning">₹${earnings.commission}</h3>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-primary shadow-sm p-3 text-center">
+                        <p class="text-muted mb-1">Net Earnings</p>
+                        <h3 class="fw-bold text-primary">₹${earnings.netEarnings}</h3>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-info shadow-sm p-3 text-center">
+                        <p class="text-muted mb-1">Total Bookings</p>
+                        <h3 class="fw-bold text-info">${earnings.totalBookings}</h3>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Load transactions
+        const transRes = await fetch('/api/provider/transactions', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const transactions = await transRes.json();
+
+        if (transactions.length > 0) {
+            document.getElementById('earningsDetails').innerHTML += `
+                <h5 class="mb-3">Transaction History</h5>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-success">
+                            <tr>
+                                <th>Booking#</th>
+                                <th>Customer</th>
+                                <th>Amount</th>
+                                <th>Commission</th>
+                                <th>Net Amount</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${transactions.map(t => `
+                                <tr>
+                                    <td>${t.bookingId}</td>
+                                    <td>${t.customerName}</td>
+                                    <td>₹${t.amount}</td>
+                                    <td>₹${t.commission}</td>
+                                    <td>₹${t.netAmount}</td>
+                                    <td>
+                                        <span class="badge ${
+                                            t.status === 'COMPLETED' ? 'bg-success' :
+                                            t.status === 'CANCELLED' ? 'bg-danger' : 'bg-warning'
+                                        }">${t.status}</span>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+    }
+
+    // Logout
+    function logout() {
+        localStorage.clear();
+        window.location.href = '/login';
+    }
+</script>
+</body>
+</html>

@@ -24,4 +24,8 @@ public class PageController {
     public String customerDashboard() {
         return "customer-dashboard";
     }
+    @GetMapping("/provider/dashboard")
+    public String providerDashboard() {
+        return "provider-dashboard";
+    }
 }
